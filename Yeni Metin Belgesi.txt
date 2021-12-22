@@ -1,0 +1,51 @@
+select * from order_details
+
+select order_id, sum(unit_price*quantity) INCOME from order_details group by order_id  order by INCOME desc
+
+select * from customers where city in('London', 'Berlin') order by contact_name desc
+
+select customer_id, company_name, city from customers where upper (city)=upper ('London')
+
+select category_id,sum(units_in_stock) from products 
+group by category_id
+
+select product_id, sum(quantity * unit_price) from order_details group by product_id
+
+select p.product_name,p.product_id, sum(od.quantity * od.unit_price) from products p inner join order_details od on
+p.product_id=od.product_id group by product_name,p.product_id
+
+select e.employee_id, count(o.order_id),concat(e.first_name,' ',e.last_name)  
+	from employees e inner join orders o on e.employee_id=o.employee_id group by e.employee_id 
+	
+	
+select p.product_name, sum(od.quantity*od.unit_price) 
+	from products p inner join order_details od on p.product_id=od.product_id group by p.product_name	
+	
+select * 
+	from products p inner join order_details o on p.product_id=o.product_id --where o.order_id is  NULL
+
+--en değerli eleman
+select e.employee_id, concat(e.first_name, ' ', e.last_name) , sum(od.quantity*od.unit_price) 
+	from employees e inner join orders o on e.employee_id=o.employee_id 
+					 inner join order_details od on od.order_id=o.order_id group by e.employee_id
+					 
+--en çok gelir getiren Kategori
+
+select c.category_id, c.category_name, sum(od.quantity*od.unit_price)
+	from categories c inner join products p on c.category_id=p.category_id
+					  inner join order_details od on od.product_id=p.product_id group by c.category_id
+			
+--en çok para hangi ay geldi
+
+select o.order_date,sum(od.quantity*od.unit_price) as satis, SUBSTRING(CAST(o.order_date as character(7)), 6,7) as AY
+	from  orders o inner join order_details od on o.order_id=od.order_id 
+		group by o.order_id order by o.order_id desc fetch first row only
+
+
+--Ne kadar kazandık, ürün ismi, category ismi, kazanç
+
+select p.product_name, c.category_name, sum(od.quantity*od.unit_price) as kazanc
+	from products p inner join categories c on p.category_id=c.category_id 
+				   inner join order_details od on od.product_id=p.product_id group by p.product_name,c.category_name
+				
+					 
