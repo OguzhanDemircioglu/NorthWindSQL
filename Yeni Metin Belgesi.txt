@@ -27,7 +27,7 @@ select *
 --en değerli eleman
 select e.employee_id, concat(e.first_name, ' ', e.last_name) , sum(od.quantity*od.unit_price) 
 	from employees e inner join orders o on e.employee_id=o.employee_id 
-					 inner join order_details od on od.order_id=o.order_id group by e.employee_id
+					 inner join order_details od on od.order_id=o.order_id group by e.employee_id order by sum desc fetch first row only
 					 
 --en çok gelir getiren Kategori
 
@@ -48,4 +48,33 @@ select p.product_name, c.category_name, sum(od.quantity*od.unit_price) as kazanc
 	from products p inner join categories c on p.category_id=c.category_id 
 				   inner join order_details od on od.product_id=p.product_id group by p.product_name,c.category_name
 				
+--Kim kime rapor veriyor				
+select e.first_name,e.reports_to,ee.first_name
+	from employees e left join employees ee on ee.employee_id = e.reports_to 
+		group by e.reports_to,e.first_name,ee.first_name
 					 
+
+--HHangi müşteri hangi ürüne harcama yaptı
+
+select od.product_id, od.order_id, c.customer_id,c.contact_name,sum(od.quantity*od.unit_price)
+	from order_details od inner join orders o on od.order_id=o.order_id
+						  inner join customers c on o.customer_id=c.customer_id 
+		group by od.product_id,od.order_id,c.customer_id,c.contact_name order by sum desc
+
+
+--Kim en çok hangi ürüne harcam yaptı, kişileri tekrarlamadan
+
+select * from (select company,max(total_sale) sale from(select  c.contact_name company, p.product_name product, sum(od.unit_price*od.quantity) total_sale from customers c 
+inner join orders o on c.customer_id=o.customer_id
+inner join order_details od on o.order_id=od.order_id 
+inner join products p on od.product_id=p.product_id group by c.contact_name,p.product_name 
+order by c.contact_name,total_sale desc) x
+group by company order by sale desc) result1
+inner join
+(select  c.contact_name company, p.product_name product, sum(od.unit_price*od.quantity) total_sale from customers c 
+inner join orders o on c.customer_id=o.customer_id
+inner join order_details od on o.order_id=od.order_id 
+inner join products p on od.product_id=p.product_id group by c.contact_name,p.product_name 
+order by c.contact_name,total_sale desc) result2
+on result1.company=result2.company and result1.sale=result2.total_sale
+order by sale desc
